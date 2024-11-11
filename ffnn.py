@@ -126,108 +126,116 @@ if __name__ == "__main__":
 
     model = FFNN(input_dim = len(vocab), h = args.hidden_dim)
     lrs = [0.001,0.0015,0.002,0.0025,0.01]
+    optimizers = ["adam", "sgd"]
 
     for lr in lrs:
-        optimizer = optim.SGD(model.parameters(),lr=lr, momentum=0.75)
-        print("========== Training for {} epochs ==========".format(args.epochs))
-        train_loss = []
-        valid_loss = []
-        epochs = []
-        for epoch in range(args.epochs):
-            model.train()
-            optimizer.zero_grad()
-            loss = None
-            correct = 0
-            total = 0
-            start_time = time.time()
-            print("Training started for epoch {}".format(epoch + 1))
-            random.shuffle(train_data) # Good practice to shuffle order of training data
-            minibatch_size = 16 
-            N = len(train_data)
-            for minibatch_index in tqdm(range(N // minibatch_size)):
+        for i in optimizers:
+            if i == "adam":
+                optimizer = optim.Adam(model.parameters(),lr=lr)
+            else:
+                optimizer = optim.SGD(model.parameters(),lr=lr, momentum=0.75)
+            print("========== Training for {} epochs ==========".format(args.epochs))
+            train_loss = []
+            valid_loss = []
+            epochs = []
+            for epoch in range(args.epochs):
+                model.train()
                 optimizer.zero_grad()
                 loss = None
-                for example_index in range(minibatch_size):
-                    input_vector, gold_label = train_data[minibatch_index * minibatch_size + example_index]
-                    predicted_vector = model(input_vector)
-                    predicted_label = torch.argmax(predicted_vector)
-                    correct += int(predicted_label == gold_label)
-                    total += 1
-                    example_loss = model.compute_Loss(predicted_vector.view(1,-1), torch.tensor([gold_label]))
-                    if loss is None:
-                        loss = example_loss
-                    else:
-                        loss += example_loss
-                loss = loss / minibatch_size
-                loss.backward()
-                optimizer.step()
-            print("Training completed for epoch {}".format(epoch + 1))
-            print("Training accuracy for epoch {}: {}".format(epoch + 1, correct / total))
-            print("Training time for this epoch: {}".format(time.time() - start_time))
-            print("train",loss.item())
-            train_loss.append(loss.item())
+                correct = 0
+                total = 0
+                start_time = time.time()
+                print("Training started for epoch {}".format(epoch + 1))
+                random.shuffle(train_data) # Good practice to shuffle order of training data
+                minibatch_size = 16 
+                N = len(train_data)
+                for minibatch_index in tqdm(range(N // minibatch_size)):
+                    optimizer.zero_grad()
+                    loss = None
+                    for example_index in range(minibatch_size):
+                        input_vector, gold_label = train_data[minibatch_index * minibatch_size + example_index]
+                        predicted_vector = model(input_vector)
+                        predicted_label = torch.argmax(predicted_vector)
+                        correct += int(predicted_label == gold_label)
+                        total += 1
+                        example_loss = model.compute_Loss(predicted_vector.view(1,-1), torch.tensor([gold_label]))
+                        if loss is None:
+                            loss = example_loss
+                        else:
+                            loss += example_loss
+                    loss = loss / minibatch_size
+                    loss.backward()
+                    optimizer.step()
+                print("Training completed for epoch {}".format(epoch + 1))
+                print("Training accuracy for epoch {}: {}".format(epoch + 1, correct / total))
+                print("Training time for this epoch: {}".format(time.time() - start_time))
+                print("train",loss.item())
+                train_loss.append(loss.item())
 
-            loss = None
+                loss = None
+                correct = 0
+                total = 0
+                start_time = time.time()
+                print("Validation started for epoch {}".format(epoch + 1))
+                minibatch_size = 16 
+                N = len(valid_data)
+                for minibatch_index in tqdm(range(N // minibatch_size)):
+                    optimizer.zero_grad()
+                    loss = None
+                    for example_index in range(minibatch_size):
+                        input_vector, gold_label = valid_data[minibatch_index * minibatch_size + example_index]
+                        predicted_vector = model(input_vector)
+                        predicted_label = torch.argmax(predicted_vector)
+                        correct += int(predicted_label == gold_label)
+                        total += 1
+                        example_loss = model.compute_Loss(predicted_vector.view(1,-1), torch.tensor([gold_label]))
+                        if loss is None:
+                            loss = example_loss
+                        else:
+                            loss += example_loss
+                    loss = loss / minibatch_size
+                print("Validation completed for epoch {}".format(epoch + 1))
+                print("Validation accuracy for epoch {}: {}".format(epoch + 1, correct / total))
+                print("Validation time for this epoch: {}".format(time.time() - start_time))
+                valid_loss.append(loss.item())
+                print("valid",loss.item())
+                epochs.append(epoch+1)
+                print(len(train_loss), len(valid_loss))
+
+
+            # write out to results/test.out
+            # Load and process test data
+            if not os.path.exists("results/{}".format(i)):
+                os.makedirs("results/{}".format(i))
+
+            plt.clf()
+            plt.plot(epochs, train_loss, label='train plot', color='blue')
+            plt.plot(epochs, valid_loss, label='valid plot', color='red')
+            plt.legend()
+            plt.title('Training and Validation loss')
+            plt.xlabel('Epochs')
+            plt.ylabel('Loss')
+            plt.savefig("results/{}/loss_{}_{}.png".format(i,args.hidden_dim,lr))
+            plt.close()
+
+            test_data, _ = load_data(args.test_data, args.val_data)
+            test_data = convert_to_vector_representation(test_data, word2index)
+            # Testing phase
+            print("========== Testing Phase ==========")
+            model.eval()
             correct = 0
             total = 0
-            start_time = time.time()
-            print("Validation started for epoch {}".format(epoch + 1))
-            minibatch_size = 16 
-            N = len(valid_data)
-            for minibatch_index in tqdm(range(N // minibatch_size)):
-                optimizer.zero_grad()
-                loss = None
-                for example_index in range(minibatch_size):
-                    input_vector, gold_label = valid_data[minibatch_index * minibatch_size + example_index]
-                    predicted_vector = model(input_vector)
-                    predicted_label = torch.argmax(predicted_vector)
-                    correct += int(predicted_label == gold_label)
-                    total += 1
-                    example_loss = model.compute_Loss(predicted_vector.view(1,-1), torch.tensor([gold_label]))
-                    if loss is None:
-                        loss = example_loss
-                    else:
-                        loss += example_loss
-                loss = loss / minibatch_size
-            print("Validation completed for epoch {}".format(epoch + 1))
-            print("Validation accuracy for epoch {}: {}".format(epoch + 1, correct / total))
-            print("Validation time for this epoch: {}".format(time.time() - start_time))
-            valid_loss.append(loss.item())
-            print("valid",loss.item())
-            epochs.append(epoch+1)
-            print(len(train_loss), len(valid_loss))
+            for input_vector, gold_label in test_data:
+                predicted_vector = model(input_vector)
+                predicted_label = torch.argmax(predicted_vector)
+                correct += int(predicted_label == gold_label)
+                total += 1
 
+            test_accuracy = correct / total
+            print("Test accuracy: {}".format(test_accuracy))
 
-        # write out to results/test.out
-        # Load and process test data
-        plt.clf()
-        plt.plot(epochs, train_loss, label='train plot', color='blue')
-        plt.plot(epochs, valid_loss, label='valid plot', color='red')
-        plt.legend()
-        plt.title('Training and Validation loss')
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
-        plt.savefig("results/loss_{}_{}.png".format(args.hidden_dim,lr))
-        plt.close()
-
-        test_data, _ = load_data(args.test_data, args.val_data)
-        test_data = convert_to_vector_representation(test_data, word2index)
-        # Testing phase
-        print("========== Testing Phase ==========")
-        model.eval()
-        correct = 0
-        total = 0
-        for input_vector, gold_label in test_data:
-            predicted_vector = model(input_vector)
-            predicted_label = torch.argmax(predicted_vector)
-            correct += int(predicted_label == gold_label)
-            total += 1
-
-        test_accuracy = correct / total
-        print("Test accuracy: {}".format(test_accuracy))
-
-        # Write test results to file
-        with open("results/test_{}.out".format(lr), "w") as f:
-            f.write("Test accuracy: {}\n".format(test_accuracy))
-        with open("results_sgd.out", "a") as h:
-            h.write("{} {} {} {} {}\n".format(args.hidden_dim, train_loss, valid_loss, lr, test_accuracy))
+            # Write test results to file
+            with open("results/{}/test_{}.out".format(i,lr), "w") as f:
+                f.write("Test accuracy: {}\n".format(test_accuracy))
+            with open("results_adam.out", "a") as h:
+                h.write("{} {} {} {} {} {}\n".format(args.hidden_dim, i, train_loss, valid_loss, lr, test_accuracy))

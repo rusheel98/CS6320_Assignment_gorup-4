@@ -1,6 +1,7 @@
 #!/bin/bash
-# Run the Python script with specified arguments
-python3 ffnn.py \
+
+
+python rnn.py \
   -hd 8 \
   -e 10 \
   --train_data ./training.json \
@@ -8,7 +9,7 @@ python3 ffnn.py \
   --test_data test.json \
   --do_train
 
-python3 ffnn.py \
+python rnn.py \
   -hd 16 \
   -e 10 \
   --train_data ./training.json \
@@ -16,7 +17,7 @@ python3 ffnn.py \
   --test_data test.json \
   --do_train
 
-python3 ffnn.py \
+python rnn.py \
   -hd 32 \
   -e 10 \
   --train_data ./training.json \

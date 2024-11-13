@@ -95,12 +95,12 @@ if __name__ == "__main__":
                 optimizer = optim.Adam(model.parameters(),lr=lr)
             else:
                 optimizer = optim.SGD(model.parameters(),lr=lr, momentum=0.9)
-            train_acc = []
-            valid_acc = []
-            train_loss = []
-            epochs = []
-            stopping_condition = False
-            epoch = 0
+            # train_acc = []
+            # valid_acc = []
+            # train_loss = []
+            # epochs = []
+            # stopping_condition = False
+            # epoch = 0
 
             while not stopping_condition:
                 random.shuffle(train_data)
@@ -155,8 +155,8 @@ if __name__ == "__main__":
                 print("Training completed for epoch {}".format(epoch + 1))
                 print("Training accuracy for epoch {}: {}".format(epoch + 1, correct / total))
                 trainning_accuracy = correct/total
-                train_loss.append(loss_total/loss_count)
-                train_acc.append(correct/total)
+                # train_loss.append(loss_total/loss_count)
+                # train_acc.append(correct/total)
 
 
                 model.eval()
@@ -181,9 +181,9 @@ if __name__ == "__main__":
                 print("Validation completed for epoch {}".format(epoch + 1))
                 print("Validation accuracy for epoch {}: {}".format(epoch + 1, correct / total))
                 validation_accuracy = correct/total
-                valid_acc.append(correct/total)
-                epoch += 1
-                epochs.append(epoch)
+                # valid_acc.append(correct/total)
+                # epoch += 1
+                # epochs.append(epoch)
 
                 if validation_accuracy < last_validation_accuracy and trainning_accuracy > last_train_accuracy:
                     stopping_condition=True
@@ -193,27 +193,27 @@ if __name__ == "__main__":
                     last_validation_accuracy = validation_accuracy
                     last_train_accuracy = trainning_accuracy
 
-            if not os.path.exists("results_rnn/{}".format(i)):
-                os.makedirs("results_rnn/{}".format(i))
+            # if not os.path.exists("results_rnn/{}".format(i)):
+            #     os.makedirs("results_rnn/{}".format(i))
 
-            plt.clf()
-            plt.plot(range(1,len(train_acc)+1), train_acc, label='train plot', color='blue')
-            plt.plot(range(1,len(valid_acc)+1), valid_acc, label='valid plot', color='red')
-            plt.legend()
-            plt.title('Training and Validation accuracy')
-            plt.xlabel('Epochs')
-            plt.ylabel('accuracy')
-            plt.xticks(range(1, len(train_acc) + 1))
-            plt.savefig("results_rnn/{}/acc_{}_{}.png".format(i,args.hidden_dim,lr))
-            plt.close()
-            plt.clf()
-            plt.plot(range(1,len(train_loss)+1), train_loss, label='train plot', color='green')
-            plt.title('Training loss vs epochs')
-            plt.xlabel('Epochs')
-            plt.ylabel('loss')
-            plt.xticks(range(1, len(train_loss) + 1))
-            plt.savefig("results_rnn/{}/loss_{}_{}.png".format(i,args.hidden_dim,lr))
-            plt.close()
+            # plt.clf()
+            # plt.plot(range(1,len(train_acc)+1), train_acc, label='train plot', color='blue')
+            # plt.plot(range(1,len(valid_acc)+1), valid_acc, label='valid plot', color='red')
+            # plt.legend()
+            # plt.title('Training and Validation accuracy')
+            # plt.xlabel('Epochs')
+            # plt.ylabel('accuracy')
+            # plt.xticks(range(1, len(train_acc) + 1))
+            # plt.savefig("results_rnn/{}/acc_{}_{}.png".format(i,args.hidden_dim,lr))
+            # plt.close()
+            # plt.clf()
+            # plt.plot(range(1,len(train_loss)+1), train_loss, label='train plot', color='green')
+            # plt.title('Training loss vs epochs')
+            # plt.xlabel('Epochs')
+            # plt.ylabel('loss')
+            # plt.xticks(range(1, len(train_loss) + 1))
+            # plt.savefig("results_rnn/{}/loss_{}_{}.png".format(i,args.hidden_dim,lr))
+            # plt.close()
 
 
     # You may find it beneficial to keep track of training accuracy or training loss;
